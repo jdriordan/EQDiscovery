@@ -65,7 +65,7 @@ with tf.device('/device:GPU:0'):
     lambda_history_Pretrain = np.zeros((16,1))  
      
     np.random.seed(1234)
-    tf.set_random_seed(1234)
+    tf.random.set_seed(1234)
     
     class PhysicsInformedNN:
 # =============================================================================
@@ -83,9 +83,9 @@ with tf.device('/device:GPU:0'):
             # Initialize NNs
             self.weights, self.biases = self.initialize_NN(layers)
             
-            config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+            config=tf.compat.v1.ConfigProto(allow_soft_placement=True, log_device_placement=True)
             config.gpu_options.allow_growth = True
-            self.sess = tf.Session(config = config)
+            self.sess = tf.compat.v1.Session(config = config)
             
             # Initialize parameters
             self.lambda1 = tf.Variable(tf.zeros([16, 1], dtype=tf.float32), dtype=tf.float32, name = 'lambda')
@@ -103,17 +103,17 @@ with tf.device('/device:GPU:0'):
             self.x_f = X_f[:, 0:1]
             self.t_f = X_f[:, 1:2]
             
-            self.x_tf = tf.placeholder(tf.float32, shape=[None, self.x.shape[1]])
-            self.t_tf = tf.placeholder(tf.float32, shape=[None, self.t.shape[1]])
-            self.u_tf = tf.placeholder(tf.float32, shape=[None, self.u.shape[1]])
-            self.x_f_tf = tf.placeholder(tf.float32, shape=[None, self.x_f.shape[1]])
-            self.t_f_tf = tf.placeholder(tf.float32, shape=[None, self.t_f.shape[1]])
+            self.x_tf = tf.constant(tf.float32, shape=[None, self.x.shape[1]])
+            self.t_tf = tf.constant(tf.float32, shape=[None, self.t.shape[1]])
+            self.u_tf = tf.constant(tf.float32, shape=[None, self.u.shape[1]])
+            self.x_f_tf = tf.constant(tf.float32, shape=[None, self.x_f.shape[1]])
+            self.t_f_tf = tf.constant(tf.float32, shape=[None, self.t_f.shape[1]])
             
             self.u_pred = self.net_u(self.x_tf, self.t_tf)
             self.f_pred, self.Phi_pred, self.u_t_pred = self.net_f(self.x_f_tf, self.t_f_tf, self.x_f.shape[0])
             
             self.loss_u = tf.reduce_mean(tf.square(self.u_tf - self.u_pred))
-            self.loss_f_coeff_tf = tf.placeholder(tf.float32)
+            self.loss_f_coeff_tf = tf.constant(tf.float32)
             self.loss_f = self.loss_f_coeff_tf*tf.reduce_mean(tf.square(self.f_pred))
             
             self.loss_lambda = 1e-7*tf.norm(self.lambda1, ord = 1)       
@@ -126,9 +126,9 @@ with tf.device('/device:GPU:0'):
             self.t_val = X_val[:,1:2]
             self.u_val = u_val
             
-            self.x_val_tf = tf.placeholder(tf.float32, shape=[None, self.x_val.shape[1]])
-            self.t_val_tf = tf.placeholder(tf.float32, shape=[None, self.t_val.shape[1]])
-            self.u_val_tf = tf.placeholder(tf.float32, shape=[None, self.u_val.shape[1]])
+            self.x_val_tf = tf.constant(tf.float32, shape=[None, self.x_val.shape[1]])
+            self.t_val_tf = tf.constant(tf.float32, shape=[None, self.t_val.shape[1]])
+            elf.u_val_tf = tf.constant(tf.float32, shape=[None, self.u_val.shape[1]])
                     
             self.u_val_pred = self.net_u(self.x_val_tf, self.t_val_tf)
             self.f_val_pred, _, _ = self.net_f(self.x_val_tf, self.t_val_tf, self.x_val.shape[0])
@@ -187,7 +187,7 @@ with tf.device('/device:GPU:0'):
             in_dim = size[0]
             out_dim = size[1]        
             xavier_stddev = np.sqrt(2/(in_dim + out_dim))
-            return tf.Variable(tf.truncated_normal([in_dim, out_dim], stddev=xavier_stddev), dtype=tf.float32, name = 'W')
+            return tf.Variable(tf.random.truncated_normal([in_dim, out_dim], stddev=xavier_stddev), dtype=tf.float32, name = 'W')
         
         def neural_net(self, X, weights, biases):
             num_layers = len(weights) + 1
@@ -565,7 +565,7 @@ with tf.device('/device:GPU:0'):
 # =============================================================================
 #         load data
 # =============================================================================
-        data = scipy.io.loadmat(os.path.dirname(os.getcwd()) + '\\burgers.mat')
+        data = scipy.io.loadmat(os.path.dirname(os.getcwd()) + '/Burgers/burgers.mat')
         # data = scipy.io.loadmat(os.path.dirname(os.path.dirname(os.getcwd())) + '\\burgers.mat')
         # data = scipy.io.loadmat('burgers.mat')
         
